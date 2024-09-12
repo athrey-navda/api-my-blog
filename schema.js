@@ -1,4 +1,3 @@
-// schema.js
 const { gql } = require("apollo-server-express");
 
 const typeDefs = gql`
@@ -22,12 +21,18 @@ const typeDefs = gql`
     message: String!
   }
 
+  type AuthResponse {
+    token: String!
+    message: String!
+  }
+
   type Query {
     getBlogPosts: [BlogPost!]!
     getBlogPostById(id: ID!): BlogPost
   }
 
   type Mutation {
+    login(email: String!, password: String!): AuthResponse
     sendOTP(email: String!): Response
     verifyOTP(
       postId: ID!

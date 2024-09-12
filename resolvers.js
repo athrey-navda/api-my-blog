@@ -1,14 +1,20 @@
 const BlogPost = require("./models/BlogPost");
 const nodemailer = require("nodemailer");
+const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
 
 const otps = {};
 const otpExpiry = {};
+const secret = process.env.JWT_SECRET || "supersecret";
+const adminEmail = "navdaathreynavada@gmail.com";
+const adminPassword = uuidv4();
+console.log(`Admin UUID password: ${adminPassword}`);
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "raycabackend@gmail.com",
-    pass: "wtydiixrhnavusod",
+    user: process.env.EMAILID,
+    pass: process.env.PASSWORD,
   },
 });
 
@@ -38,6 +44,7 @@ const resolvers = {
       console.log(`OTP sent to ${email}: ${otp}`);
       return { message: "OTP sent" };
     },
+
     verifyOTP: async (parent, { postId, email, otp, author, content }) => {
       const currentTime = Date.now();
       const storedOtp = String(otps[email]);
@@ -75,7 +82,11 @@ const resolvers = {
       }
     },
 
-    addBlogPost: async (parent, { title, content, author }) => {
+    addBlogPost: async (parent, { title, content, author }, context) => {
+      if (!context.user) {
+        throw new Error("Unauthorized");
+      }
+
       const newBlogPost = new BlogPost({
         title,
         content,
@@ -86,6 +97,14 @@ const resolvers = {
 
       await newBlogPost.save();
       return newBlogPost;
+    },
+
+    login: async (parent, { email, password }) => {
+      if (email === adminEmail && password === adminPassword) {
+        const token = jwt.sign({ email }, secret, { expiresIn: "1h" });
+        return { token, message: "Login successful" };
+      }
+      throw new Error("Invalid credentials");
     },
   },
 };
