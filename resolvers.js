@@ -17,6 +17,8 @@ const transporter = nodemailer.createTransport({
     pass: process.env.PASSWORD,
   },
 });
+console.log("Email ID:", process.env.EMAILID);
+console.log("Email Password:", process.env.PASSWORD);
 
 const resolvers = {
   Query: {
